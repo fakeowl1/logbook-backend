@@ -8,8 +8,8 @@
 
 ## Розробники
 
-[Уколов Роман ІМ-41](https://github.com/fakeowl1)
-[Глеба Катерина ІМ-41](https://github.com/KaterynaHl)
+- [Уколов Роман ІМ-41](https://github.com/fakeowl1)
+- [Глеба Катерина ІМ-41](https://github.com/KaterynaHl)
 
 ## Технологічний стек
 
