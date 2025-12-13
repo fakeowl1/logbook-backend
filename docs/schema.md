@@ -63,26 +63,22 @@
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
 | name | VARCHAR(256) | NOT NULL | Назва транзакції |
-| description | VARCHAR(512) | NOT NULL | Опис транзакції |
-| sender_id | FOREIGN KEY | UNIQUE, NOT NULL | Email користувача |
-| created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
+| description | VARCHAR(512) | NOT NULL | Опис транзакції | 
+| created_at | TIMESTAMP | DEFAULT NOW() | Час створення транзакції |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
 
 Зв'язки:
-- Один-до-багатьох з `Transfer` (транзакція може мати кілька трансферів)
+- Один-до-багатьох з `Transfers` (транзакція може мати кілька трансферів)
 
-# Таблиця: `Transfer`
+# Таблиця: `Transfers`
 
 Призначення: Зберігає інформацію про трансферів
 
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
-| id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
-| amount | DECIMAL | >= 0| Кількість валюты |
+| id | SERIAL | PRIMARY KEY | Ідентифікатор трансфера |
+| amount | DECIMAL | >= 0| Кількість переказу | 
 | account_id | FOREIGN KEY | NOT NULL | Хешований пароль |
-| transcation_id | FOREIGN KEY | DEFAULT NOW() | Час створення облікового запису |
+| transcation_id | FOREIGN KEY | DEFAULT NOW() | Ідентифікатор транзакції |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
-
-Зв'язки:
-- Один-до-багатьох з `Transfer` (користувач може мати кілька трансферів)
