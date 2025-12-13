@@ -6,11 +6,11 @@
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор токена |
-| token | VARCHAR(255) | NOT NULL | Хешований токен |
-| user_id | FOREIGN KEY | NOT NULL | Час створення облікового запису |
+| token | VARCHAR(255) | NOT NULL | Токен авторизації |
+| user_id | FOREIGN KEY | NOT NULL | Ідентифікатор користувача |
 
 Індекси:
-- `idx_tokens_token` на `token` (для пошуку при вході)
+- `idx_tokens_token` на `token` (для пошуку токена)
 
 Зв'язки:
 - Один-до-багатьох з `Users` (користувач може мати кілька замовлень)
@@ -23,7 +23,9 @@
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
-| email | VARCHAR(255) | UNIQUE, NOT NULL | Email користувача |
+| first_name | VARCHAR(32) | NOT NULL | Ім'я користувача |
+| last_name  | VARCHAR(32) | NOT NULL | Прізвище користувача |
+| email | VARCHAR(255) | UNIQUE, NOT NULL | email користувача |
 | password_hash | VARCHAR(255) | NOT NULL | Хешований пароль |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
@@ -43,7 +45,7 @@
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор рахунку |
 | user_id | FOREIGN KEY | NOT NULL | Ідентифікатор користувача |
-| currency | VARCHAR(3) | NOT NULL | Валюта |
+| currency | VARCHAR(3) | NOT NULL | Код валюти |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
 
@@ -53,32 +55,36 @@
 Зв'язки:
 - Один-до-багатьох з `Transactions` (користувач може робити кілька транзакцій)
 
-
 # Таблиця: `Transactions`
 
 Призначення: Зберігає інформацію про транзакції рахунку
+
+Індекси:
+- `idx_accounts_user_id` на `user_id` (для пошуку рахунків користувача)
 
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
-| name | VARCHAR(256) | NOT NULL | Назва транзакції |
-| description | VARCHAR(512) | NOT NULL | Опис транзакції | 
+| name | VARCHAR(128) | NOT NULL | Назва транзакції |
+| description | VARCHAR(256) | NOT NULL | Опис транзакції |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення транзакції |
-| deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
 
 Зв'язки:
 - Один-до-багатьох з `Transfers` (транзакція може мати кілька трансферів)
 
 # Таблиця: `Transfers`
 
-Призначення: Зберігає інформацію про трансферів
+Призначення: Зберігає інформацію про кількість переказу.
 
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор трансфера |
-| amount | DECIMAL | >= 0| Кількість переказу | 
-| account_id | FOREIGN KEY | NOT NULL | Хешований пароль |
+| amount | DECIMAL | NOT NULL| Кількість переказу | 
+| account_id | FOREIGN KEY | NOT NULL | Ідентифікатор рахунку |
 | transcation_id | FOREIGN KEY | DEFAULT NOW() | Ідентифікатор транзакції |
-| deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
+
+
+Індекси:
+- `idx_transfers_account_id` на `account_id` (для пошуку трансферів рахунку)
