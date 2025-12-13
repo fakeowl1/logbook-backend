@@ -24,7 +24,7 @@
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
 | first_name | VARCHAR(32) | NOT NULL | Ім'я користувача |
-| last_name  | VARCHAR(32) | NOT NULL | Прізвище користувача |
+| last_name| VARCHAR(32) | NOT NULL | Прізвище користувача |
 | email | VARCHAR(255) | UNIQUE, NOT NULL | email користувача |
 | password_hash | VARCHAR(255) | NOT NULL | Хешований пароль |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
@@ -45,6 +45,7 @@
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор рахунку |
 | user_id | FOREIGN KEY | NOT NULL | Ідентифікатор користувача |
+| balance | DECIMAL(11, 2) | NOT NULL | Баланс | 
 | currency | VARCHAR(3) | NOT NULL | Код валюти |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення рахунку запису |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
@@ -58,9 +59,6 @@
 # Таблиця: `Transactions`
 
 Призначення: Зберігає інформацію про транзакції рахунку
-
-Індекси:
-- `idx_accounts_user_id` на `user_id` (для пошуку рахунків користувача)
 
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
@@ -87,4 +85,4 @@
 | amount | DECIMAL | NOT NULL| Кількість переказу | 
 
 Індекси:
-- `idx_transfers_account_id` на `account_id` (для пошуку трансферів рахунку)
+- `idx_transfers_account_id` на `account_id` (для пошуку трансферів однієї транзакції)
