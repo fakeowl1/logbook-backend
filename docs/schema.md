@@ -62,6 +62,8 @@
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
 | id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
+| name | VARCHAR(256) | NOT NULL | Назва транзакції |
+| description | VARCHAR(512) | NOT NULL | Опис транзакції |
 | sender_id | FOREIGN KEY | UNIQUE, NOT NULL | Email користувача |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
