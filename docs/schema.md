@@ -82,7 +82,7 @@
 |----------|-----|-----------|------|
 | account_id | FOREIGN KEY | NOT NULL | Ідентифікатор рахунку |
 | transcation_id | FOREIGN KEY | NOT NULL | Ідентифікатор транзакції |
-| account_id, transcation_id | | PRIMARY KEY | Множинний первинний ключ |
+| account_id, transcation_id | | PRIMARY KEY | Множинний ідентифікатор трансферу |
 | amount | DECIMAL | NOT NULL| Кількість переказу | 
 
 Індекси:
