@@ -25,8 +25,8 @@
 | id | INT | PRIMARY KEY | Ідентифікатор користувача |
 | first_name | VARCHAR(32) | NOT NULL | Ім'я користувача |
 | last_name| VARCHAR(32) | NOT NULL | Прізвище користувача |
-| email | VARCHAR(255) | UNIQUE, NOT NULL | email користувача |
-| password_hash | VARCHAR(255) | NOT NULL | Хешований пароль |
+| email | VARCHAR(128) | UNIQUE, NOT NULL | email користувача |
+| password_hash | VARCHAR | NOT NULL | Хешований пароль |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
 
