@@ -5,9 +5,9 @@
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
-| id | SERIAL | PRIMARY KEY | Ідентифікатор токена |
-| token | VARCHAR(255) | NOT NULL | Токен авторизації |
-| user_id | FOREIGN KEY | NOT NULL | Ідентифікатор користувача |
+| id | INT | PRIMARY KEY | Ідентифікатор токена |
+| token | VARCHAR(64) | NOT NULL | Токен авторизації |
+| user_id | INT | FOREIGN KEY, NOT NULL | Ідентифікатор користувача |
 
 Індекси:
 - `idx_tokens_token` на `token` (для пошуку токена)
@@ -22,7 +22,7 @@
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
-| id | SERIAL | PRIMARY KEY | Ідентифікатор користувача |
+| id | INT | PRIMARY KEY | Ідентифікатор користувача |
 | first_name | VARCHAR(32) | NOT NULL | Ім'я користувача |
 | last_name| VARCHAR(32) | NOT NULL | Прізвище користувача |
 | email | VARCHAR(255) | UNIQUE, NOT NULL | email користувача |
@@ -43,8 +43,8 @@
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
-| id | SERIAL | PRIMARY KEY | Ідентифікатор рахунку |
-| user_id | FOREIGN KEY | NOT NULL | Ідентифікатор користувача |
+| id | INT | PRIMARY KEY | Ідентифікатор рахунку |
+| user_id | INT | FOREIGN KEY, NOT NULL | Ідентифікатор користувача |
 | balance | DECIMAL(11, 2) | NOT NULL | Баланс | 
 | currency | VARCHAR(3) | NOT NULL | Код валюти |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення рахунку запису |
@@ -63,7 +63,7 @@
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
-| id | SERIAL | PRIMARY KEY | Ідентифікатор транзакції |
+| id | INT | PRIMARY KEY | Ідентифікатор транзакції |
 | name | VARCHAR(128) | NOT NULL | Назва транзакції |
 | currency | VARCHAR(3) | NOT NULL | Код валюти |
 | description | VARCHAR(256) | NOT NULL | Опис транзакції |
@@ -79,9 +79,9 @@
 Стовпці:
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
-| account_id | FOREIGN KEY | NOT NULL | Ідентифікатор рахунку |
-| transcation_id | FOREIGN KEY | NOT NULL | Ідентифікатор транзакції |
-| account_id, transcation_id | | PRIMARY KEY | Множинний ідентифікатор трансферу |
+| account_id | INT | NOT NULL | Ідентифікатор рахунку |
+| transaction_id | INT | NOT NULL | Ідентифікатор транзакції |
+| account_id, transaction_id | | PRIMARY KEY, FOREIGN KEY | Множинний ідентифікатор трансферу |
 | amount | DECIMAL | NOT NULL| Кількість переказу | 
 
 Індекси:
