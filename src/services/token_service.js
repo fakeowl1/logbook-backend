@@ -1,0 +1,19 @@
+// import { InvalidData, RecordAlreadyExists, RecordNotFound } from '../error-handler.js';
+import { generateToken, hashPassword, checkPassword, addHoursToDatetime } from '../utils.js';
+
+export const createToken = async (prisma, user_id) => {
+  return await prisma.$transaction(async (tx) => {
+      const token = generateToken();
+      const expire = addHoursToDatetime(new Date(), 6);
+
+      await tx.tokens.create({ 
+        data: { 
+          token: token, 
+          expire: expire,
+          user_id: user_id
+        } 
+      });
+
+      return { token, expire };
+  }); 
+};

@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-const generateToken = () => crypto.randomBytes(64).toString('hex');
+const generateToken = () => crypto.randomBytes(32).toString('hex');
 
 const hashPassword = (password) => {
   const salt = crypto.randomBytes(32).toString('hex');
