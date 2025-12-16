@@ -1,22 +1,6 @@
 import prisma from '../../prisma/prisma-client.js';
 import { createAccount, findAccountById, deleteAccount } from '../services/account_service.js';
-import { Unauthorized } from '../error-handler.js';
-
-const getUserIdFromToken = async (token) => {
-  if (!token) {
-    throw new Unauthorized('token required');
-  }
-
-  const tokenRecord = await prisma.tokens.findUnique({
-    where: { token }
-  });
-
-  if (!tokenRecord || new Date(tokenRecord.expire) < new Date()) {
-    throw new Unauthorized('token is invalid or expired');
-  }
-
-  return tokenRecord.user_id;
-};
+import { getUserIdFromToken } from '../services/token_service.js';
 
 export const accountsRoutes = async (fastify, options) => {
 
