@@ -6,7 +6,8 @@
 | Стовпець | Тип | Обмеження | Опис |
 |----------|-----|-----------|------|
 | id | INT | PRIMARY KEY | Ідентифікатор токена |
-| token | VARCHAR(64) | NOT NULL | Токен авторизації |
+| token | VARCHAR(64)  | NOT NULL | Токен авторизації |
+| expire | TIMESTAMP | NOT NULL | Дійсність токена |
 | user_id | INT | FOREIGN KEY, NOT NULL | Ідентифікатор користувача |
 
 Індекси:
@@ -27,6 +28,7 @@
 | last_name| VARCHAR(32) | NOT NULL | Прізвище користувача |
 | email | VARCHAR(128) | UNIQUE, NOT NULL | email користувача |
 | password_hash | VARCHAR | NOT NULL | Хешований пароль |
+| password_salt | VARCHAR | NOT NULL | Сіль для хешування пароля |
 | created_at | TIMESTAMP | DEFAULT NOW() | Час створення облікового запису |
 | deleted_at | TIMESTAMP | NULL | Мітка часу м'якого видалення |
 
