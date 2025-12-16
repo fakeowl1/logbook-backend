@@ -1,9 +1,11 @@
+import prisma from '../../prisma/prisma-client.js';
 import { InvalidData, RecordAlreadyExists, RecordNotFound, Unauthorized } from '../error-handler.js';
 
-export const createUser = async (prisma, email, firstName, lastName, hashedPassword) => {
+
+export const createUser = async (email, firstName, lastName, hashedPassword) => {
   return prisma.$transaction(async (tx) => {
       const validEmail = /^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/;
-      
+
       if (!validEmail.test(email)) {
         throw new InvalidData("Email is invalid");
       }
@@ -34,7 +36,7 @@ export const createUser = async (prisma, email, firstName, lastName, hashedPassw
   }); 
 };
 
-export const findOneUser = async (prisma, email) => {
+export const findOneUser = async (email) => {
   const user = await prisma.users.findUnique({
     where: { email }
   });
@@ -46,10 +48,11 @@ export const findOneUser = async (prisma, email) => {
   return user;
 };
 
-export const deactivateUser = async (prisma, token) => {
+// TODO: REFACTOR
+export const deactivateUser = async (token) => {
   return prisma.$transaction(async (tx) => {
       const tokenRecord = await tx.tokens.findUnique({
-        where: { token }
+        where: { token: token }
       });
 
       if (!tokenRecord) {

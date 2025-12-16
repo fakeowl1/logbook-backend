@@ -16,7 +16,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "start-test": "docker compose up -d postgres && docker compose run --rm app npm test && docker compose down",
+    "start-test": "docker compose up -d postgres && docker compose build app --no-cache && docker compose run --rm app npm test && docker compose down",
     "start": "node app.js"
   },
   "devDependencies": {
