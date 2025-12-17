@@ -1,5 +1,5 @@
 import { hashPassword, checkPassword, addHoursToDatetime } from '../utils.js';
-import { createUser, findOneUser, findUserByUserId } from '../services/user_service.js';
+import { createUser, findOneUserByEmail } from '../services/user_service.js';
 import { createToken, getUserIdFromToken } from '../services/token_service.js';
 import { Unauthorized } from '../error-handler.js';
 import { findUserAccounts } from '../services/account_service.js';
@@ -91,9 +91,8 @@ export const usersRoutes = async (fastify, options) => {
         hashedPassword
       );
 
-      const token = await createToken(user.id);
-
-      return reply.code(201).send(token);
+      const { token, expire } = await createToken(user.id);
+      return reply.code(201).send({ token, expire });
   });
   
   fastify.post(
@@ -101,19 +100,18 @@ export const usersRoutes = async (fastify, options) => {
     loginUserOptions,
     async (req, reply) => {
       const { email, password } = req.body;
-      const user = await findOneUser(email);
+      const user = await findOneUserByEmail(email);
 
       const isPasswordValid = checkPassword(password, user.password_hash, user.password_salt)
       if (!isPasswordValid) {
         throw new Unauthorized('Invalid password');
       }
-      
-      const token = await createToken(user.id);
 
-      return reply.code(200).send(token);
+      const { token, expire } = await createToken(user.id);
+      return reply.code(200).send({ token, expire });
   });
 
-  fastify.post(
+  fastify.get(
     '/myAccounts',
     getCurrentUserAccounts,
     async (req, reply) => {

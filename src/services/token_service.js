@@ -8,7 +8,7 @@ export const createToken = async (user_id) => {
       const token = generateToken();
       const expire = addHoursToDatetime(new Date(), 6);
 
-      await tx.tokens.create({ 
+      const tokenRecord = await tx.tokens.create({ 
         data: { 
           token: token, 
           expire: expire,
@@ -16,7 +16,7 @@ export const createToken = async (user_id) => {
         } 
       });
 
-      return { token, expire };
+      return tokenRecord;
   }); 
 };
 
