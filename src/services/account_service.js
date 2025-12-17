@@ -3,8 +3,10 @@ import { InvalidData, RecordNotFound, Unauthorized } from '../error-handler.js';
 export const createAccount = async (prisma, user_id, currency) => {
   return prisma.$transaction(async (tx) => {
 
-    if (!currency || currency.length !== 3) {
-      throw new InvalidData('currency must be a 3-letter code');
+    const validCurrency = /\b[A-Z]{3}\b/g;
+
+    if (!validCurrency.test(currency)) {
+      throw new InvalidData("currency is invalid");
     }
 
     const user = await tx.users.findUnique({
