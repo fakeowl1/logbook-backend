@@ -33,6 +33,6 @@ export const accountsRoutes = async (fastify, options) => {
     const user_id = await getUserIdFromToken(token);
     await deleteAccount(user_id, account_id);
 
-    return reply.code(204).send();
+    return reply.code(204).send({ status: "Your account successfully deactivated" });
   });
 };
