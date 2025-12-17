@@ -26,34 +26,36 @@ export const createAccount = async (prisma, user_id, currency) => {
 };
 
 export const findAccountById = async (prisma, user_id, account_id) => {
-  const account = await prisma.accounts.findUnique({
-    where: { id: account_id }
-  });
-
-  if (!account || account.deleted_at) {
-    throw new RecordNotFound('account not found');
+  const account = await prisma.accounts.findFirst({
+  where: {
+    AND: [
+      { id: account_id },
+      { user_id: user_id },
+      { deleted_at: null }
+    ]
   }
+});
 
-  if (account.user_id !== user_id) {
-    throw new Unauthorized('access denied');
-  }
-
+if (!account) {
+  throw new RecordNotFound('account not found');
+}
   return account;
 };
 
 export const deleteAccount = async (prisma, user_id, account_id) => {
   return prisma.$transaction(async (tx) => {
-
-    const account = await tx.accounts.findUnique({
-      where: { id: account_id }
+    const account = await tx.accounts.findFirst({
+      where: {
+        AND: [
+          { id: account_id },
+          { user_id: user_id },
+          { deleted_at: null }
+        ]
+      }
     });
 
-    if (!account || account.deleted_at) {
+    if (!account) {
       throw new RecordNotFound('account not found');
-    }
-
-    if (account.user_id !== user_id) {
-      throw new Unauthorized('access denied');
     }
 
     if (Number(account.balance) !== 0) {
