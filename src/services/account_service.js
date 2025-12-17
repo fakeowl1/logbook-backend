@@ -32,7 +32,7 @@ export const findAccountById = async (user_id, account_id) => {
     where: { 
       id: account_id,
       user_id: user_id,
-      is_deleted: null,
+      deleted_at: null,
     }
   });
 

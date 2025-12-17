@@ -40,7 +40,7 @@ export const findOneUser = async (user_id) => {
   const user = await prisma.users.findUnique({
     where: { 
       id: user_id,
-      is_deleted: null,
+      deleted_at: null,
     }
   });
 
@@ -49,7 +49,19 @@ export const findOneUser = async (user_id) => {
   }
 
   return user;
-}
+};
+
+export const findOneUserByEmail = async (email) => {
+  const user = await prisma.users.findUnique({
+    where: { email }
+  });
+
+  if (!user) {
+    throw new RecordNotFound(`User is not found`);
+  }
+
+  return user;
+};
 
 export const deactivateUser = async (token) => {
   return prisma.$transaction(async (tx) => {
