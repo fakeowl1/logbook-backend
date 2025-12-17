@@ -1,4 +1,5 @@
-// import { InvalidData, RecordAlreadyExists, RecordNotFound } from '../error-handler.js';
+import { Unauthorized } from '../error-handler.js';
+
 import { generateToken, addHoursToDatetime } from '../utils.js';
 import prisma from '../../prisma/prisma-client.js';
 
@@ -24,8 +25,8 @@ export const getUserIdFromToken = async (token) => {
     throw new Unauthorized('token required');
   }
 
-  const tokenRecord = await prisma.tokens.findUnique({
-    where: { token }
+  const tokenRecord = await prisma.tokens.findFirst({
+    where: { token: token }
   });
 
   if (!tokenRecord || new Date(tokenRecord.expire) < new Date()) {

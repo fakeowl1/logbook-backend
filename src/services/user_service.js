@@ -36,6 +36,7 @@ export const createUser = async (email, firstName, lastName, hashedPassword) => 
   }); 
 };
 
+// TODO: delete it
 export const findOneUser = async (email) => {
   const user = await prisma.users.findUnique({
     where: { email }
@@ -47,6 +48,18 @@ export const findOneUser = async (email) => {
 
   return user;
 };
+
+export const findUserByUserId = async (user_id) => {
+  const user = await prisma.users.findUnique({
+    where: { id: user_id }
+  });
+
+  if (!user) {
+    throw new RecordNotFound(`User is not found`);
+  }
+
+  return user;
+}
 
 // TODO: REFACTOR
 export const deactivateUser = async (token) => {
