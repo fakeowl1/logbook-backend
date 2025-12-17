@@ -1,5 +1,5 @@
 import { hashPassword, checkPassword, addHoursToDatetime } from '../utils.js';
-import { createUser, findOneUser, findOneUser, findOneUserByEmail } from '../services/user_service.js';
+import { createUser, findOneUserByEmail } from '../services/user_service.js';
 import { createToken, getUserIdFromToken } from '../services/token_service.js';
 import { Unauthorized } from '../error-handler.js';
 import { findUserAccounts } from '../services/account_service.js';
