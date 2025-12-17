@@ -29,12 +29,10 @@ export const createAccount = async (prisma, user_id, currency) => {
 
 export const findAccountById = async (prisma, user_id, account_id) => {
   const account = await prisma.accounts.findFirst({
-  where: {
-    AND: [
-      { id: account_id },
-      { user_id: user_id },
-      { deleted_at: null }
-    ]
+    where: {
+      id: account_id,
+      user_id: user_id,
+      deleted_at: null
   }
 });
 
@@ -48,11 +46,9 @@ export const deleteAccount = async (prisma, user_id, account_id) => {
   return prisma.$transaction(async (tx) => {
     const account = await tx.accounts.findFirst({
       where: {
-        AND: [
-          { id: account_id },
-          { user_id: user_id },
-          { deleted_at: null }
-        ]
+          id: account_id,
+          user_id: user_id,
+          deleted_at: null
       }
     });
 
