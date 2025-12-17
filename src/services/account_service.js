@@ -4,8 +4,10 @@ import { InvalidData, RecordNotFound, Unauthorized } from '../error-handler.js';
 export const createAccount = async (user_id, currency) => {
   return prisma.$transaction(async (tx) => {
 
-    if (!currency || currency.length !== 3) {
-      throw new InvalidData('currency must be a 3-letter code');
+    const validCurrency = /\b[A-Z]{3}\b/g;
+
+    if (!validCurrency.test(currency)) {
+      throw new InvalidData("currency is invalid");
     }
 
     const user = await tx.users.findUnique({
@@ -38,7 +40,11 @@ export const findAccountById = async (user_id, account_id) => {
   if (account.user_id !== user_id) {
     throw new Unauthorized('access denied');
   }
+});
 
+if (!account) {
+  throw new RecordNotFound('account not found');
+}
   return account;
 };
 
@@ -61,17 +67,16 @@ export const findUserAccounts = async (user_id) => {
 
 export const deleteAccount = async (user_id, account_id) => {
   return prisma.$transaction(async (tx) => {
-
-    const account = await tx.accounts.findUnique({
-      where: { id: account_id }
+    const account = await tx.accounts.findFirst({
+      where: {
+          id: account_id,
+          user_id: user_id,
+          deleted_at: null
+      }
     });
 
-    if (!account || account.deleted_at) {
+    if (!account) {
       throw new RecordNotFound('account not found');
-    }
-
-    if (account.user_id !== user_id) {
-      throw new Unauthorized('access denied');
     }
 
     if (Number(account.balance) !== 0) {
