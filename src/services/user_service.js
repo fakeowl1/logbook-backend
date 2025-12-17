@@ -75,10 +75,10 @@ export const deactivateUser = async (token) => {
 
       await tx.users.update({
         where: {
-          user_id: tokenRecord.user_id
+          id: tokenRecord.user_id
         },
         data: {
-          is_deleted: new Date(),
+          deleted_at: new Date(),
         }
       });
   });
