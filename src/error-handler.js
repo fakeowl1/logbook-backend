@@ -36,6 +36,12 @@ const errorHandler = (err, req, reply) => {
     return reply.code(err.statusCode).send({ error: err.message });
   }
 
+  if (err.validation) {
+    return reply.code(400).send({
+      error: err.message,
+    });
+  }
+  
   reply.log.error({
     request: {
       method: req.method,
