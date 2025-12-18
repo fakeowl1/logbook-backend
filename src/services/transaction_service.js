@@ -33,6 +33,7 @@ const userAccountName = `user_${userId}`;
     if (!userAccount) {
       throw new RecordNotFound('User account not found');
     }
+
     const systemAccountName =
       type === 'income'
         ? 'system_income'
@@ -48,5 +49,28 @@ const userAccountName = `user_${userId}`;
     if (!systemAccount) {
       throw new RecordNotFound('System account not found');
     }
+
+    const transaction = await tx.transactions.create({
+        data: {
+        type,
+        category,
+        amount
+        }
+        });
+        
+        const fromAccount =
+        type === 'income' ? systemAccount : userAccount;
+  
+      const toAccount =
+        type === 'income' ? userAccount : systemAccount;
+  
+      await tx.transfers.create({
+        data: {
+          transaction_id: transaction.id,
+          from_account_id: fromAccount.id,
+          to_account_id: toAccount.id,
+          amount
+        }
+      });
 });
 };
