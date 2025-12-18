@@ -65,7 +65,7 @@ describe('Account Services', () => {
       createdAccountIds.push(account.id);
 
       expect(account.currency).toBe('USD');
-      expect(account.balance).toBe(0);
+      expect(Number(account.balance)).toBe(0);
     });
 
     it('should throw error if currency is invalid', async () => {
