@@ -13,7 +13,6 @@ export const createAccount = async (accountName, currency) => {
     return tx.accounts.create({
       data: {
         name: accountName,
-        currency: currency.toUpperCase(),
         balance: 0
       }
     });
@@ -39,7 +38,7 @@ export const findAccountById = async (accountName, accountId) => {
 export const findUserAccounts = async (accountName) => {
   const accounts = await prisma.accounts.findMany({
     where: { 
-      accountName: accountName,
+      name: accountName,
       deleted_at: null,
     },
     select: {
