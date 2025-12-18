@@ -17,4 +17,21 @@ fastify.post('/income', async (req, reply) => {
 
     return reply.code(201).send(transaction);
   });
+
+// PAY
+fastify.post('/pay', async (req, reply) => {
+    const token = req.headers.authorization;
+    const { amount, category } = req.body;
+
+    const userId = await getUserIdFromToken(token);
+
+    const transaction = await createTransaction({
+      userId,
+      type: 'pay',
+      amount,
+      category
+    });
+
+    return reply.code(201).send(transaction);
+  });
 }
