@@ -3,7 +3,8 @@
 import prisma from '../../../prisma/prisma-client.js';
 import {
   createAccount,
-  findAccountById
+  findAccountById,
+  deleteAccount
 } from '../../services/account_service.js';
 
 import {
@@ -16,7 +17,7 @@ describe('Account Services', () => {
   let createdUserIds = [];
   let createdAccountIds = [];
 
-  //HELPER FUNCTION
+  // HELPER FUNCTION
   const createTestUser = async () => {
     const user = await prisma.users.create({
       data: {
@@ -106,4 +107,36 @@ describe('Account Services', () => {
     });
   });
 
-});
+  describe('deleteAccount', () => {
+    it('should soft delete account when balance is zero', async () => {
+      const user = await createTestUser();
+
+      const account = await createAccount(user.id, 'USD');
+      createdAccountIds.push(account.id);
+
+      await deleteAccount(user.id, account.id);
+
+      await expect(
+        findAccountById(user.id, account.id)
+      ).rejects.toThrow(RecordNotFound);
+    });
+
+    it('should throw error if balance is not zero', async () => {
+      const user = await createTestUser();
+
+      const account = await prisma.accounts.create({
+        data: {
+          user_id: user.id,
+          currency: 'USD',
+          balance: 100
+        }
+      });
+      createdAccountIds.push(account.id);
+
+      await expect(
+        deleteAccount(user.id, account.id)
+      ).rejects.toThrow(InvalidData);
+    });
+  });
+
+}); 
