@@ -1,88 +1,96 @@
 import prisma from '../../prisma/prisma-client.js';
 import { InvalidData, RecordNotFound } from '../error-handler.js';
 
-export const createTransaction = async ({
-userId,
-type,
-amount,
-category = null
-}) => {
-
-if (amount <= 0) {
-throw new InvalidData('Amount must be positive');
-}
-
-if (!['income', 'pay'].includes(type)) {
-throw new InvalidData('Invalid transaction type');
-}
-
-if (type === 'pay' && !category) {
-throw new InvalidData('Category is required for pay');
-}
-
-const userAccountName = `user_${userId}`;
-
+export const incomeTransaction = async (userId, amount, currency) => {
   return prisma.$transaction(async (tx) => {
-    const userAccount = await tx.accounts.findFirst({
-      where: {
-        name: userAccountName,
-        deleted_at: null
-      }
+    if (amount <= 0) throw new InvalidData('Amount must be positive');
+
+    const userAccountName = `user_${userId}`;
+    const incomeAccountName = `user_${userId}_income`;
+
+    const userAccount = await tx.accounts.findUnique({
+      where: { name_currency: { name: userAccountName, currency } }
     });
 
-    if (!userAccount) {
-      throw new RecordNotFound('User account not found');
+    if (!userAccount || userAccount.deleted_at !== null) {
+      throw new RecordNotFound('Account is not found');
     }
 
-    const systemAccountName =
-      type === 'income'
-        ? 'system_income'
-        : `system_${category}`;
-
-    const systemAccount = await tx.accounts.findFirst({
-      where: {
-        name: systemAccountName,
-        deleted_at: null
-      }
+    await tx.accounts.update({
+      where: { name_currency: { name: userAccountName, currency } },
+      data: { balance: { increment: amount } }
     });
 
-    if (!systemAccount) {
-      throw new RecordNotFound('System account not found');
-    }
+    const incomeAccount = await tx.accounts.upsert({
+      where: { name_currency: { name: incomeAccountName, currency } }, // ВИПРАВЛЕНО
+      update: { balance: { decrement: amount } },
+      create: {
+        name: incomeAccountName,
+        currency,
+        balance: -amount
+      }
+    });
 
     const transaction = await tx.transactions.create({
-        data: {
-        type,
-        category,
-        amount
-        }
-        });
+      data: { name: "Income", description: "User income", currency }
+    });
 
-        const fromAccount =
-        type === 'income' ? systemAccount : userAccount;
-  
-      const toAccount =
-        type === 'income' ? userAccount : systemAccount;
-  
-      await tx.transfers.create({
-        data: {
-          transaction_id: transaction.id,
-          from_account_id: fromAccount.id,
-          to_account_id: toAccount.id,
-          amount
-        }
-      });
-      
-      await tx.accounts.update({
-        where: { id: fromAccount.id },
-        data: { balance: { decrement: amount } }
-      });
-  
-      await tx.accounts.update({
-        where: { id: toAccount.id },
-        data: { balance: { increment: amount } }
-      });
-  
-      return transaction;
-});
+    await tx.transfers.createMany({
+      data: [
+        { account_id: incomeAccount.id, transaction_id: transaction.id, amount: -amount },
+        { account_id: userAccount.id, transaction_id: transaction.id, amount: amount }
+      ]
+    });
+
+    return transaction;
+  });
+};
+
+export const categoryTransaction = async (userId, category, amount, currency) => {
+  return prisma.$transaction(async (tx) => {
+    if (amount <= 0) throw new InvalidData('Amount must be positive');
+
+    const userAccountName = `user_${userId}`;
+    const categoryAccountName = `user_${userId}_${category}`;
+
+    const userAccount = await tx.accounts.findUnique({
+      where: { name_currency: { name: userAccountName, currency } }
+    });
+
+    if (!userAccount || userAccount.deleted_at !== null) {
+      throw new RecordNotFound('Account is not found');
+    }
+
+    await tx.accounts.update({
+      where: { name_currency: { name: userAccountName, currency } },
+      data: { balance: { decrement: amount } }
+    });
+
+    const categoryAccount = await tx.accounts.upsert({
+      where: { name_currency: { name: categoryAccountName, currency } },
+      update: { balance: { increment: amount } },
+      create: {
+        name: categoryAccountName,
+        currency,
+        balance: amount
+      }
+    });
+
+    const transaction = await tx.transactions.create({
+      data: {
+        name: `Pay for ${category}`,
+        description: `Used payed for ${category}`,
+        currency
+      }
+    });
+
+    await tx.transfers.createMany({
+      data: [
+        { account_id: userAccount.id, transaction_id: transaction.id, amount: -amount },
+        { account_id: categoryAccount.id, transaction_id: transaction.id, amount: amount }
+      ]
+    });
+
+    return transaction;
+  });
 };
