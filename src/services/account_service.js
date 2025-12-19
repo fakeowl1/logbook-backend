@@ -3,6 +3,12 @@ import { InvalidData, RecordAlreadyExists, RecordNotFound } from '../error-handl
 
 export const createAccount = async (userId, currency) => {
   return prisma.$transaction(async (tx) => {
+    const validCurrency = /^[A-Z]{3}$/;;
+
+    if (!validCurrency.test(currency)) {
+      throw new InvalidData("Invalid currency");
+    }
+
     const name = `user_${userId}`;
 
     const user = await tx.users.findUnique({
@@ -11,12 +17,6 @@ export const createAccount = async (userId, currency) => {
 
     if (!user) {
       throw new RecordNotFound('Invalid user_id');
-    }
-
-    const validCurrency = /\b[A-Z]{3}\b/g;
-
-    if (!validCurrency.test(currency)) {
-      throw new InvalidData("Invalid currency");
     }
 
     const isAccountExists = await tx.accounts.findUnique({
@@ -40,7 +40,7 @@ export const createAccount = async (userId, currency) => {
 };
 
 export const findUserAccount = async (userId, currency, category) => {
-  const name = category ? `user_${userId}_${category}` : `user_${userId}`; 
+  const name = category ? `user_${userId}_${category}` : `user_${userId}`;
 
   const account = await prisma.accounts.findUnique({
     where: { name_currency: { name, currency }, deleted_at: null }

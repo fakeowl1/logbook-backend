@@ -35,6 +35,7 @@ model transactions {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(128)
   description String?     @db.VarChar(256)
+  category    String      @db.VarChar(255)
   currency    String      @db.VarChar(3)
   created_at  DateTime?   @default(now()) @db.Timestamp(6)
   transfers   transfers[]
