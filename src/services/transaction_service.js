@@ -3,6 +3,12 @@ import { InvalidData, RecordNotFound } from '../error-handler.js';
 
 export const incomeTransaction = async (userId, amount, currency) => {
   return prisma.$transaction(async (tx) => {
+    const validCurrency = /^[A-Z]{3}$/;;
+
+    if (!validCurrency.test(currency)) {
+      throw new InvalidData("Invalid currency");
+    }
+
     if (amount <= 0) throw new InvalidData('Amount must be positive');
 
     const userAccountName = `user_${userId}`;
@@ -32,7 +38,12 @@ export const incomeTransaction = async (userId, amount, currency) => {
     });
 
     const transaction = await tx.transactions.create({
-      data: { name: "Income", description: "User income", currency }
+      data: { 
+        name: "Income", 
+        description: "User income", 
+        currency,
+        category: "income"
+      }
     });
 
     await tx.transfers.createMany({
@@ -49,6 +60,12 @@ export const incomeTransaction = async (userId, amount, currency) => {
 export const categoryTransaction = async (userId, category, amount, currency) => {
   return prisma.$transaction(async (tx) => {
     if (amount <= 0) throw new InvalidData('Amount must be positive');
+
+    const validCurrency = /^[A-Z]{3}$/;;
+
+    if (!validCurrency.test(currency)) {
+      throw new InvalidData("Invalid currency");
+    }
 
     const userAccountName = `user_${userId}`;
     const categoryAccountName = `user_${userId}_${category}`;
@@ -80,7 +97,8 @@ export const categoryTransaction = async (userId, category, amount, currency) =>
       data: {
         name: `Pay for ${category}`,
         description: `Used payed for ${category}`,
-        currency
+        currency,
+        category
       }
     });
 
