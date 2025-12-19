@@ -81,19 +81,6 @@ const deleteAccountOptions = {
 
 export const accountsRoutes = async (fastify, options) => {
 
-  fastify.post(
-    '/',
-    createAccountOptions,
-    async (req, reply) => {
-    const token = req.headers['x-token'];
-    const { currency } = req.body;
-
-    const user_id = await getUserIdFromToken(token);
-    const account = await createAccount(user_id, currency);
-
-    return reply.code(201).send(account);
-  });
-
   fastify.get('/:id', getAccountOptions, async (req, reply) => {
     const token = req.headers['x-token'];
     const account_id = Number(req.params.id);
