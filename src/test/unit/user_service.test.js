@@ -21,24 +21,14 @@ describe('User Services', () => {
     `);
   });
   
-  let createdUserIds = [];
-  let createdTokensIds = [];
-  
   afterEach(async () => {
-    // Delete all users and tokens after every operation
-    if (createdTokensIds.length > 0) {
-      await prisma.tokens.deleteMany({
-        where: { id: {in: createdTokensIds} }
-      });
-      createdTokensIds = []
-    }
-    if (createdUserIds.length > 0) {
-      await prisma.users.deleteMany({
-        where: { id: {in: createdUserIds} }
-      });
-      createdUserIds = [];
-    }
-  })
+    await prisma.users.deleteMany({});
+    await prisma.tokens.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
 
   describe('createUser', () => {
     it('should throw error if email is invalid', async () => {
@@ -57,7 +47,6 @@ describe('User Services', () => {
       const hashedPassword = hashPassword('qwerty123');
 
       const user = await createUser(email, firstName, lastName, hashedPassword);
-      createdUserIds.push(user.id);
 
       await expect(createUser(email, firstName, lastName, hashedPassword)).rejects.toThrow(RecordAlreadyExists);
     });
@@ -76,7 +65,6 @@ describe('User Services', () => {
       const hashedPassword = hashPassword('qwerty123');
 
       const createdUser = await createUser(email, firstName, lastName, hashedPassword);
-      createdUserIds.push(createdUser.id);
       const findedUser = await findOneUserByEmail(email);
 
       expect(findedUser).toEqual(createdUser);
@@ -96,11 +84,8 @@ describe('User Services', () => {
       const hashedPassword = hashPassword('qwerty123');
       
       const createdUser = await createUser(email, firstName, lastName, hashedPassword);
-      createdUserIds.push(createdUser.id);
-
+      
       const token = await createToken(createdUser.id);
-      createdTokensIds.push(token.id);
-
       await deactivateUser(token.token);
 
       await expect(findOneUser(createdUser.id)).rejects.toThrow(RecordNotFound);

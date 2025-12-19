@@ -39,6 +39,10 @@ describe('Account Services', () => {
     await prisma.users.deleteMany({});
   });
 
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
   describe('createAccount', () => {
     it('should create an account with valid name based on user_id', async () => {
       const user = await createTestUser();

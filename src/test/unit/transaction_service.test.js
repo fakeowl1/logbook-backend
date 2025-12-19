@@ -1,123 +1,122 @@
 /* eslint-disable no-undef */
-
 import prisma from '../../../prisma/prisma-client.js';
-import {
-  createAccount,
-  findUserAccount,
-  deleteAccount
-} from '../../services/account_service.js';
+import { 
+  incomeTransaction, 
+  categoryTransaction 
+} from '../../services/transaction_service.js';
+import { createAccount } from '../../services/account_service.js';
+import { InvalidData, RecordNotFound } from '../../error-handler.js';
 
-import {
-  InvalidData,
-  RecordNotFound
-} from '../../error-handler.js';
-
-describe('Account Services', () => {
-  let createdUserIds = [];
-  let createdAccountIds = [];
-
-  // HELPER FUNCTION
+describe('Transaction Services', () => {
   const createTestUser = async () => {
-    const user = await prisma.users.create({
+    return await prisma.users.create({
       data: {
-        email: `test_${Date.now()}@example.com`,
+        email: `test_${Date.now()}_${Math.random()}@example.com`,
         first_name: 'Test',
         last_name: 'User',
         password_hash: 'hash',
         password_salt: 'salt'
       }
     });
-    createdUserIds.push(user.id);
-    return user;
   };
 
   beforeAll(async () => {
-    await prisma.$executeRawUnsafe(`
-      TRUNCATE TABLE
-        "users",
-        "accounts",
-        "transactions",
-        "transfers",
-        "tokens"
-      RESTART IDENTITY CASCADE;
-    `);
+    // Clean start
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "users", "accounts", "transactions", "transfers" CASCADE;`);
   });
 
   afterEach(async () => {
-    if (createdAccountIds.length > 0) {
-      await prisma.accounts.deleteMany({
-        where: { id: { in: createdAccountIds } }
+    // Clean up after every test to maintain isolation
+    await prisma.transfers.deleteMany();
+    await prisma.transactions.deleteMany();
+    await prisma.accounts.deleteMany();
+    await prisma.users.deleteMany();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  describe('incomeTransaction', () => {
+    it('should successfully process income and create an income account', async () => {
+      const user = await createTestUser();
+      const currency = 'USD';
+      const amount = 100;
+
+      await createAccount(user.id, currency);
+
+      const transaction = await incomeTransaction(user.id, amount, currency);
+
+      expect(transaction.name).toBe('Income');
+      
+      const userAcc = await prisma.accounts.findUnique({
+        where: { name_currency: { name: `user_${user.id}`, currency } }
       });
-      createdAccountIds = [];
-    }
+      expect(Number(userAcc.balance)).toBe(amount);
 
-    if (createdUserIds.length > 0) {
-      await prisma.users.deleteMany({
-        where: { id: { in: createdUserIds } }
+      const incomeAcc = await prisma.accounts.findUnique({
+        where: { name_currency: { name: `user_${user.id}_income`, currency } }
       });
-      createdUserIds = [];
-    }
-  });
+      expect(Number(incomeAcc.balance)).toBe(-amount);
 
-  describe('createAccount', () => {
-    it('should create an account with valid input', async () => {
-      const user = await createTestUser();
-
-      const account = await createAccount(user.id, 'USD');
-      createdAccountIds.push(account.id);
-
-      expect(account.currency).toBe('USD');
-      expect(Number(account.balance)).toBe(0);
+      const transfers = await prisma.transfers.findMany({
+        where: { transaction_id: transaction.id }
+      });
+      expect(transfers).toHaveLength(2);
     });
 
-    it('should throw error if currency is invalid', async () => {
+    it('should throw InvalidData for negative amounts', async () => {
       const user = await createTestUser();
-
-      await expect(
-        createAccount(user.id, 'US')
-      ).rejects.toThrow(InvalidData);
+      await expect(incomeTransaction(user.id, -50, 'USD'))
+        .rejects.toThrow(InvalidData);
     });
 
-    it('should throw error if user not found', async () => {
-      await expect(
-        createAccount(99999, 'USD')
-      ).rejects.toThrow(RecordNotFound);
+    it('should throw RecordNotFound if main user account does not exist', async () => {
+      const user = await createTestUser();
+      await expect(incomeTransaction(user.id, 100, 'EUR'))
+        .rejects.toThrow(RecordNotFound);
     });
   });
 
-  describe('findAccount', () => {
-    it('should return account when found', async () => {
+  describe('categoryTransaction', () => {
+    it('should transfer money from main account to category account', async () => {
       const user = await createTestUser();
+      const currency = 'GBP';
+      const amount = 30;
+      const category = 'coffee';
 
-      const account = await createAccount(user.id, 'EUR');
-      createdAccountIds.push(account.id);
+      // Setup: Create main account with initial balance
+      await createAccount(user.id, currency);
+      await prisma.accounts.update({
+        where: { name_currency: { name: `user_${user.id}`, currency } },
+        data: { balance: 100 }
+      });
 
-      const foundAccount = await findUserAccount(user.id, 'EUR');
+      const transaction = await categoryTransaction(user.id, category, amount, currency);
 
-      expect(foundAccount.id).toBe(account.id);
+      expect(transaction.category).toBe(category);
+
+      const userAcc = await prisma.accounts.findUnique({
+        where: { name_currency: { name: `user_${user.id}`, currency } }
+      });
+      expect(Number(userAcc.balance)).toBe(70);
+
+      const catAcc = await prisma.accounts.findUnique({
+        where: { name_currency: { name: `user_${user.id}_${category}`, currency } }
+      });
+      expect(Number(catAcc.balance)).toBe(amount);
     });
 
-    it('should throw error if account not found', async () => {
+    it('should throw InvalidData if currency format is wrong', async () => {
       const user = await createTestUser();
+      await expect(categoryTransaction(user.id, 'food', 10, 'usd_extra'))
+        .rejects.toThrow(InvalidData);
+    });
 
-      await expect(
-        findUserAccount(user.id, 'USD')
-      ).rejects.toThrow(RecordNotFound);
+    it('should throw RecordNotFound if user tries to pay from non-existent account', async () => {
+      const user = await createTestUser();
+      await expect(categoryTransaction(user.id, 'rent', 500, 'JPY'))
+        .rejects.toThrow(RecordNotFound);
     });
   });
-
-  describe('deleteAccount', () => {
-    it('should soft delete account when balance is zero', async () => {
-      const user = await createTestUser();
-
-      const account = await createAccount(user.id, 'USD');
-      createdAccountIds.push(account.id);
-
-      await deleteAccount(user.id, account.id);
-
-      await expect(
-        findUserAccount(user.id, 'USD')
-      ).rejects.toThrow(RecordNotFound);
-    });
-  });
-}); 
+});
