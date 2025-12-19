@@ -40,7 +40,7 @@
 Запустити тести: `npm run start-test`
 
 ## Структура проєкту
-
+```
 src/
 ├── error-handler.js
 ├── routes
@@ -61,6 +61,7 @@ src/
 │       ├── user_service.test.js
 │       └── utils.test.js
 └── utils.js
+```
 
 ## Приклади API 
 
