@@ -2,7 +2,7 @@ import { hashPassword, checkPassword, addHoursToDatetime } from '../utils.js';
 import { createUser, findOneUserByEmail } from '../services/user_service.js';
 import { createToken, getUserIdFromToken } from '../services/token_service.js';
 import { Unauthorized } from '../error-handler.js';
-import { findUserAccounts } from '../services/account_service.js';
+import { createAccount } from '../services/account_service.js';
 
 const signupUserOptions = {
   schema: {
@@ -16,13 +16,14 @@ const signupUserOptions = {
       }
     },
     body: {
-      required: ['email', 'firstName', 'lastName', 'password'],
+      required: ['email', 'firstName', 'lastName', 'password', 'accountCurrency'],
       type: 'object',
       properties: {
         email: { type: 'string' },
         firstName: { type: 'string' },
         lastName: { type: 'string' },
-        password: { type: 'string' }
+        password: { type: 'string' },
+        accountCurrency: { type: 'string' }
       } 
     }
   }
@@ -58,38 +59,20 @@ const tokenHeader = {
   required: ['x-token'],
 };
 
-const getCurrentUserAccounts = {
-  schema: {
-    headers: tokenHeader,
-    response: {
-      200: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            id: { type: 'number' },
-            currency: { type: 'string' },
-            balance: { type: 'number' },
-            created_at: { type: 'string' }
-          }
-        }
-      }
-    }
-  }
-}
-
 export const usersRoutes = async (fastify, options) => {
   fastify.post(
     '/signUp',
     signupUserOptions,
     async (req, reply) => {
-      const { email, firstName, lastName, password } = req.body;
+      const { email, firstName, lastName, password, accountCurrency } = req.body;
 
       const hashedPassword = hashPassword(password);
       const user = await createUser(
         email, firstName, lastName, 
         hashedPassword
       );
+
+      await createAccount(user.id, accountCurrency);
 
       const { token, expire } = await createToken(user.id);
       return reply.code(201).send({ token, expire });
@@ -110,16 +93,4 @@ export const usersRoutes = async (fastify, options) => {
       const { token, expire } = await createToken(user.id);
       return reply.code(200).send({ token, expire });
   });
-
-  fastify.get(
-    '/myAccounts',
-    getCurrentUserAccounts,
-    async (req, reply) => {
-      const token = req.headers['x-token'];
-
-      const user_id = await getUserIdFromToken(token);
-      const accounts = await findUserAccounts(user_id);
-
-      return reply.code(200).send(accounts);
-  })
 }
